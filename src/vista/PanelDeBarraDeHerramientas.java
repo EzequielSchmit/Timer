@@ -12,6 +12,8 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import model.SoundManager;
+
 public class PanelDeBarraDeHerramientas extends JPanel {
 	
 	boolean volumeMuted = false;

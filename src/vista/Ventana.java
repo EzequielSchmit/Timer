@@ -17,25 +17,32 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import model.SoundManager;
+
 public class Ventana extends JFrame {
 	
 	private SoundManager soundManager;
 	private Font timerFont;
 	private Image imageIcon;
 	private ImageIcon volumeIcons[];
-	
+	private ImageIcon pipIcon;
+	private PanelDeInicio panelDeInicio;
+	private PanelDeBarraDeHerramientas panelDeBarraDeHerramientas;
+	private PictureInPictureFrame pipFrame;
+	private JPanel contentPane;
 	public Ventana() {
 		
 		loadResources();
 		
-		JPanel contentPane = new JPanel(new BorderLayout());
+		contentPane = new JPanel(new BorderLayout());
 		contentPane.setMinimumSize(new Dimension(650, 450));
 		contentPane.setPreferredSize(new Dimension(650, 450));
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-		PanelDeBarraDeHerramientas panelDeBarraDeHerramientas = new PanelDeBarraDeHerramientas(this);
-		PanelDeInicio panelDeInicio = new PanelDeInicio(this);
+		panelDeBarraDeHerramientas = new PanelDeBarraDeHerramientas(this);
+		panelDeInicio = new PanelDeInicio(this);
+		
 		
 		panelDeBarraDeHerramientas.setBackground(new Color(235,235,235));
 		panelDeInicio.setBackground(new Color(255,255,255));
@@ -45,6 +52,7 @@ public class Ventana extends JFrame {
 		foregroundColor = new Color (val,val,val);
 		panelDeInicio.setTimerFieldForeground(foregroundColor);
 		panelDeInicio.setButtonsForeground(foregroundColor);
+		pipFrame = new PictureInPictureFrame(this);
 		
 		contentPane.add(panelDeBarraDeHerramientas, BorderLayout.NORTH);
 		contentPane.add(panelDeInicio, BorderLayout.CENTER);
@@ -58,6 +66,8 @@ public class Ventana extends JFrame {
 		setVisible(true);
 		setMinimumSize(getPreferredSize());
 		setIconImage(imageIcon);
+		
+		panelDeInicio.configureKeyBindings();
 	}
 
 	public SoundManager getSoundManager() {
@@ -72,8 +82,11 @@ public class Ventana extends JFrame {
 		return volumeIcons;
 	}
 	
+	public ImageIcon getPipIcon() {
+		return pipIcon;
+	}
+	
 	private void loadResources() {
-		imageIcon = new ImageIcon("resources/icons/alarm-clock.png").getImage();
 		try {
 			timerFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/fonts/OpenSans-VariableFont_wdth,wght.ttf"));
 			GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(timerFont);
@@ -82,6 +95,7 @@ public class Ventana extends JFrame {
 			timerFont = getFont();
 		}
 		soundManager = new SoundManager("resources/sounds/alarm-sound.wav"); //piano-sound.wav or alarm-sound.wav
+		imageIcon = new ImageIcon("resources/icons/alarm-clock.png").getImage();
 		volumeIcons = new ImageIcon[] {
 				new ImageIcon("resources/icons/volume-off.png"),
 				new ImageIcon("resources/icons/volume-down.png"),
@@ -89,6 +103,43 @@ public class Ventana extends JFrame {
 				new ImageIcon("resources/icons/volume-mute.png")
 				
 		};
+		pipIcon = new ImageIcon("resources/icons/pip.png");
 	}
+	
+	public void setPictureInPictureActivated(boolean activated) {
+		if (activated)
+			activatePictureInPicture();
+		else
+			deactivatePictureInPicture();
+	}
+	
+	private void activatePictureInPicture() {
+		contentPane.remove(panelDeInicio);
+		setVisible(false);
+		pipFrame.activate();
+	}
+	
+	private void deactivatePictureInPicture() {
+		pipFrame.deactivate();
+		contentPane.add(panelDeInicio, BorderLayout.CENTER);
+		setVisible(true);
+	}
+
+	public boolean isPipActivated() {
+		return pipFrame.isPipActivated();
+	}
+	
+	public PanelDeInicio getPanelDeInicio() {
+		return panelDeInicio;
+	}
+
+	public PanelDeBarraDeHerramientas getPanelDeBarraDeHerramientas() {
+		return panelDeBarraDeHerramientas;
+	}
+	
+	public PictureInPictureFrame getPipFrame() {
+		return pipFrame;
+	}
+	
 
 }

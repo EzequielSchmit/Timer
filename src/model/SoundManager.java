@@ -1,4 +1,4 @@
-package vista;
+package model;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +14,6 @@ public class SoundManager {
 		AudioInputStream audioStream = null;
 		File file = new File(soundPathname);
 		try {
-//			audioStream = AudioSystem.getAudioInputStream(new File("resources/alarm-sound.m4a"));
 			audioStream = AudioSystem.getAudioInputStream(file);
 			isLoaded = true;
 		} catch (UnsupportedAudioFileException e){
@@ -51,7 +50,7 @@ public class SoundManager {
             int startFrame = (int) (startSecond * frameRate);
             int endFrame = (int) (endSecond * frameRate);
             clip.setMicrosecondPosition((long)(startSecond*1_000_000));
-			clip.setLoopPoints(startFrame, -1); 			//aca podria usar endFrame en vez de -1 si quisiera hacer que el loop termine antes que el final del archivo
+			clip.setLoopPoints(startFrame, -1);
 			clip.loop(Clip.LOOP_CONTINUOUSLY);
 		}
 	}

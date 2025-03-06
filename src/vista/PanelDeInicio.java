@@ -16,6 +16,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -43,6 +46,7 @@ public class PanelDeInicio extends JPanel {
 	Ventana ventana;
 	Font timerFont, buttonFont;
 	JButton startButton, stopButton;
+	JLabel pipButton; 
 	JPanel fieldsPanel, buttonsPanel, timerPanel;
 	Timer timer;
 	List<SelectableLabel> listOfFieldLabels;
@@ -53,8 +57,8 @@ public class PanelDeInicio extends JPanel {
 	
 	public PanelDeInicio(Ventana ventana) {
 		this.ventana = ventana;
-		timerFont = ventana.getTimerFont().deriveFont(65f).deriveFont(Font.BOLD);
-		buttonFont = timerFont.deriveFont(19f);
+		timerFont = ventana.getTimerFont().deriveFont(66f).deriveFont(Font.BOLD);
+		buttonFont = timerFont.deriveFont(17f);
 		
 		setLayout(new GridBagLayout());
 		timerPanel = new JPanel();
@@ -83,13 +87,17 @@ public class PanelDeInicio extends JPanel {
 		
 		configureButtons();
 		configureTimer();
-		configureKeyBindings(ventana);
 		
 	}
 	
-	private void configureKeyBindings(Ventana ventana) {
-		InputMap inputMap = ventana.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap actionMap = ventana.getRootPane().getActionMap();
+	public void configureKeyBindings() {
+		configureKeyBindings(ventana);
+		configureKeyBindings(ventana.getPipFrame());
+	}
+	
+	private void configureKeyBindings(JFrame frame) {
+		InputMap inputMap = frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = frame.getRootPane().getActionMap();
 
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "startPressed");
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "startPressed");
@@ -108,6 +116,16 @@ public class PanelDeInicio extends JPanel {
                 stop();
             }
         });
+        
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_P, 0), "pipMode");
+        actionMap.put("pipMode", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	ventana.setPictureInPictureActivated(!ventana.isPipActivated());
+            }
+        });
+        
+        
 	}
 	
 	private void setTimer(int timeInSeconds) {
@@ -201,20 +219,55 @@ public class PanelDeInicio extends JPanel {
 			}
 		});
 		
+		pipButton.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (pipButton.isOpaque())
+					pipButton.setBackground(new Color(235,235,235));
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				pipButton.setBackground(new Color(245,245,245));
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				pipButton.setOpaque(false);
+				pipButton.setBackground(new Color(255,255,255,0));
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				pipButton.setBackground(new Color(235,235,235));
+				pipButton.setOpaque(true);
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				pipButton.setOpaque(false);
+				pipButton.setBackground(new Color(255,255,255,0));
+				ventana.setPictureInPictureActivated(!ventana.isPipActivated());
+			}
+		});
+		
 		
 	}
 
 	private void loadButtons(JPanel buttonsPanel) {
-		listOfButtons = new ArrayList<>();
+		pipButton = new JLabel(ventana.getPipIcon());
 		startButton = new JButton("START");
 		stopButton = new JButton("STOP");
+		listOfButtons = new ArrayList<>();
 		listOfButtons.add(startButton);
 		listOfButtons.add(stopButton);
 		
 		
+		
 		for (JButton b : listOfButtons) {
 			b.setFont(buttonFont);
-			b.setPreferredSize(new Dimension(135, b.getPreferredSize().height));
+			b.setPreferredSize(new Dimension(120, b.getPreferredSize().height));
 			b.setBackground(Color.WHITE);
 			b.setForeground(Color.BLACK);
 			b.setFocusPainted(false);
@@ -224,6 +277,7 @@ public class PanelDeInicio extends JPanel {
 		
 		buttonsPanel.setLayout(new BorderLayout());
 		buttonsPanel.add(startButton, BorderLayout.WEST);
+		buttonsPanel.add(pipButton, BorderLayout.CENTER);
 		buttonsPanel.add(stopButton, BorderLayout.EAST);
 		buttonsPanel.setPreferredSize(new Dimension(fieldsPanel.getPreferredSize().width, buttonsPanel.getPreferredSize().height));
 	}
