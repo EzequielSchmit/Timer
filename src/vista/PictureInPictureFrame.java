@@ -20,6 +20,7 @@ public class PictureInPictureFrame extends JFrame {
 		setAlwaysOnTop(true);
 		setResizable(false);
 		setUndecorated(true);
+		configurarListenersParaArrastre();
 		
     }
 	
