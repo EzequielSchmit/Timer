@@ -22,41 +22,42 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
+import vista.components.SelectableLabel;
 import vista.components.SingleDigitField;
 
 public class PanelDeInicio extends JPanel {
 
-	JButton botonConfiguraciones;
+	Ventana ventana;
 	Font timerFont, buttonFont;
 	JButton startButton, stopButton;
-	JPanel fieldsPanel, buttonsPanel;
+	JPanel fieldsPanel, buttonsPanel, timerPanel;
 	Timer timer;
-	SingleDigitField[] fields;
-	SoundManager soundManager;
+	List<SelectableLabel> listOfFieldLabels;
+	List<JButton> listOfButtons;
+	SingleDigitField[] digitFields;
 	int timeLeftInSeconds = 0;
 	int initialTimeLeftInSeconds = 0;
-	boolean fieldModificationsEnabled = true;
 	
 	public PanelDeInicio(Ventana ventana) {
-		setMinimumSize(new Dimension(650, 450));
-		setPreferredSize(new Dimension(650, 450));
-		loadResources();
-		timerFont = timerFont.deriveFont(65f).deriveFont(Font.BOLD);
-		buttonFont = timerFont.deriveFont(19f);//.deriveFont(Font.PLAIN);
+		this.ventana = ventana;
+		timerFont = ventana.getTimerFont().deriveFont(65f).deriveFont(Font.BOLD);
+		buttonFont = timerFont.deriveFont(19f);
 		
 		setLayout(new GridBagLayout());
-		JPanel timerPanel = new JPanel();
+		timerPanel = new JPanel();
 		GridBagConstraints gbc = new GridBagConstraints();
 		timerPanel.setLayout(new GridBagLayout());
 		timerPanel.setBackground(new Color(180,180,180));
@@ -116,22 +117,22 @@ public class PanelDeInicio extends JPanel {
 		timeInSeconds -= minutes*60;
 		int seconds = timeInSeconds;
 		
-		fields[5].setText( ((seconds)%10)+"" );
-		fields[4].setText( ((seconds)/10)+"" );
-		fields[3].setText( ((minutes)%10)+"" );
-		fields[2].setText( ((minutes)/10)+"" );
-		fields[1].setText( ((hours)%10)+"" );
-		fields[0].setText( ((hours)/10)+"" );
+		digitFields[5].setText( ((seconds)%10)+"" );
+		digitFields[4].setText( ((seconds)/10)+"" );
+		digitFields[3].setText( ((minutes)%10)+"" );
+		digitFields[2].setText( ((minutes)/10)+"" );
+		digitFields[1].setText( ((hours)%10)+"" );
+		digitFields[0].setText( ((hours)/10)+"" );
 	}
 	
 	private int getTimeOfFieldsInSeconds() {
 		int time = 0;
-		time += fields[5].getDigit();
-		time += fields[4].getDigit()*10;
-		time += fields[3].getDigit()*60;
-		time += fields[2].getDigit()*600;
-		time += fields[1].getDigit()*3600;
-		time += fields[0].getDigit()*36000;
+		time += digitFields[5].getDigit();
+		time += digitFields[4].getDigit()*10;
+		time += digitFields[3].getDigit()*60;
+		time += digitFields[2].getDigit()*600;
+		time += digitFields[1].getDigit()*3600;
+		time += digitFields[0].getDigit()*36000;
 		return time;
 	}
 	
@@ -145,7 +146,7 @@ public class PanelDeInicio extends JPanel {
 					startButton.setText("START");
 					startButton.setEnabled(false);
 					timer.stop();
-					soundManager.startSound();
+					ventana.getSoundManager().startSound();
 				}
 			}
 
@@ -171,8 +172,8 @@ public class PanelDeInicio extends JPanel {
 	}
 	
 	private void stop() {
-		if (soundManager.isRinging()) {
-			soundManager.stopSound();
+		if (ventana.getSoundManager().isRinging()) {
+			ventana.getSoundManager().stopSound();
 		} else {
 			timer.stop();
 			setTimer(initialTimeLeftInSeconds);
@@ -181,7 +182,7 @@ public class PanelDeInicio extends JPanel {
 		stopButton.setEnabled(false);
 		setFieldModificationsEnabled(true);
 		startButton.setText("START");
-		fields[0].requestFocus();
+		digitFields[0].requestFocus();
 	}
 
 	private void configureButtons() {
@@ -204,15 +205,16 @@ public class PanelDeInicio extends JPanel {
 	}
 
 	private void loadButtons(JPanel buttonsPanel) {
+		listOfButtons = new ArrayList<>();
 		startButton = new JButton("START");
 		stopButton = new JButton("STOP");
-		JButton[] buttons = new JButton[] {
-				startButton, stopButton
-		};
+		listOfButtons.add(startButton);
+		listOfButtons.add(stopButton);
 		
-		for (JButton b : buttons) {
+		
+		for (JButton b : listOfButtons) {
 			b.setFont(buttonFont);
-			b.setPreferredSize(new Dimension(140, b.getPreferredSize().height));
+			b.setPreferredSize(new Dimension(135, b.getPreferredSize().height));
 			b.setBackground(Color.WHITE);
 			b.setForeground(Color.BLACK);
 			b.setFocusPainted(false);
@@ -227,9 +229,8 @@ public class PanelDeInicio extends JPanel {
 	}
 
 	private void loadFields(JPanel fieldsPanel) {
-		
-		List<JLabel> listOfLabels = new ArrayList<JLabel>(8);
-		fields = new SingleDigitField[] {
+		listOfFieldLabels = new ArrayList<>(8);
+		digitFields = new SingleDigitField[] {
 				new SingleDigitField(9),
 				new SingleDigitField(9),
 				new SingleDigitField(1, 5),
@@ -237,20 +238,20 @@ public class PanelDeInicio extends JPanel {
 				new SingleDigitField(5),
 				new SingleDigitField(9)
 		};
-		listOfLabels.add(fields[0]);
-		listOfLabels.add(fields[1]);
-		listOfLabels.add(new JLabel(":"));
-		listOfLabels.add(fields[2]);
-		listOfLabels.add(fields[3]);
-		listOfLabels.add(new JLabel(":"));
-		listOfLabels.add(fields[4]);
-		listOfLabels.add(fields[5]);
+		listOfFieldLabels.add(digitFields[0]);
+		listOfFieldLabels.add(digitFields[1]);
+		listOfFieldLabels.add(new SelectableLabel(":"));
+		listOfFieldLabels.add(digitFields[2]);
+		listOfFieldLabels.add(digitFields[3]);
+		listOfFieldLabels.add(new SelectableLabel(":"));
+		listOfFieldLabels.add(digitFields[4]);
+		listOfFieldLabels.add(digitFields[5]);
 		
 		Vector<Component> order = new Vector<Component>();
 		
 		
 		fieldsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
-		for (JLabel f : listOfLabels) {
+		for (JLabel f : listOfFieldLabels) {
 			f.setBackground(Color.WHITE);
 			f.setOpaque(true);
 			f.setFont(timerFont);
@@ -264,28 +265,32 @@ public class PanelDeInicio extends JPanel {
 		fieldsPanel.setFocusCycleRoot(true);
 	}
 
-	private void loadResources() {
-		try {
-			timerFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/OpenSans-VariableFont_wdth,wght.ttf"));
-			GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(timerFont);
-			soundManager = new SoundManager("resources/sound.wav");
-			
-		} catch (FontFormatException | IOException e) {
-			// timerFont = Font.getFont("Arial");
-			timerFont = getFont();
-		}
-	}
-	
 	private void setFieldModificationsEnabled(boolean enabled) {
-		fieldModificationsEnabled = enabled;
-		for (SingleDigitField field : fields)
+		for (SingleDigitField field : digitFields)
 			field.setFocusable(enabled);
 	}
 	
-	private boolean areFieldModificationsEnabled() {
-		return fieldModificationsEnabled;
+	public void setTimerBackground(Color color) {
+		timerPanel.setBackground(color);
+	}
+	
+	public void setTimerFieldBackground(Color color) {
+		for (JLabel f : listOfFieldLabels)
+			f.setBackground(color);
+	}
+	
+	public void setTimerFieldForeground(Color color) {
+		for (SelectableLabel f : listOfFieldLabels) {
+			f.setForeground(color);
+			f.setFirstColor(color);
+		}
 	}
 
+	public void setButtonsForeground(Color color) {
+		for (JButton b : listOfButtons)
+			b.setForeground(color);
+	}
+	
 	public static class MyOwnFocusTraversalPolicy extends FocusTraversalPolicy {
 		Vector<Component> order;
 
