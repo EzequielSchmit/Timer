@@ -58,7 +58,7 @@ public class PanelDeInicio extends JPanel {
 	public PanelDeInicio(Ventana ventana) {
 		this.ventana = ventana;
 		timerFont = ventana.getTimerFont().deriveFont(66f).deriveFont(Font.BOLD);
-		buttonFont = timerFont.deriveFont(17f);
+		buttonFont = timerFont.deriveFont(16f);
 		
 		setLayout(new GridBagLayout());
 		timerPanel = new JPanel();
@@ -263,6 +263,7 @@ public class PanelDeInicio extends JPanel {
 		listOfButtons.add(startButton);
 		listOfButtons.add(stopButton);
 		
+		pipButton.setToolTipText("Picture-in-picture mode");
 		
 		
 		for (JButton b : listOfButtons) {
